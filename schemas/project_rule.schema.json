@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalamstudio.dev/schemas/project_rule.schema.json",
+  "title": "Qalam Studio Project Rule",
+  "description": "Defines a reusable rule that can govern a Qalam Studio project.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "id",
+    "name",
+    "description",
+    "level",
+    "category",
+    "scope",
+    "violation_action",
+    "enabled"
+  ],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^RULE-[A-Z0-9_-]+$",
+      "description": "Stable unique identifier of the rule.",
+      "examples": [
+        "RULE-EPISODE-MAX-DURATION",
+        "RULE-VISUAL-STYLE"
+      ]
+    },
+
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "description": "Human-readable name of the rule."
+    },
+
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Explains what the rule requires or recommends."
+    },
+
+    "level": {
+      "type": "string",
+      "description": "Defines how strictly the rule must be respected.",
+      "enum": [
+        "hard_constraint",
+        "soft_constraint",
+        "creative_guideline"
+      ]
+    },
+
+    "category": {
+      "type": "string",
+      "description": "Functional domain concerned by the rule.",
+      "enum": [
+        "narrative",
+        "visual",
+        "audio",
+        "production",
+        "technical",
+        "compliance",
+        "publication"
+      ]
+    },
+
+    "scope": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Domain objects affected by the rule.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "project",
+          "story",
+          "character",
+          "episode",
+          "scene",
+          "shot",
+          "asset",
+          "voice",
+          "video",
+          "deliverable"
+        ]
+      }
+    },
+
+    "condition": {
+      "type": ["string", "null"],
+      "description": "Optional condition describing when this rule applies.",
+      "default": null
+    },
+
+    "validation": {
+      "type": ["object", "null"],
+      "description": "Defines how compliance with the rule can be evaluated.",
+      "default": null,
+
+      "additionalProperties": false,
+
+      "required": [
+        "mode"
+      ],
+
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "automatic",
+            "ai_review",
+            "human_review"
+          ]
+        },
+
+        "expression": {
+          "type": ["string", "null"],
+          "description": "Machine-readable or human-readable validation expression.",
+          "default": null
+        }
+      }
+    },
+
+    "violation_action": {
+      "type": "string",
+      "description": "Action expected when the rule is not respected.",
+      "enum": [
+        "reject",
+        "warn",
+        "suggest"
+      ]
+    },
+
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    }
+  }
+}

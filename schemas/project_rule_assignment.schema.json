@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalamstudio.dev/schemas/project_rule_assignment.schema.json",
+  "title": "Qalam Studio Project Rule Assignment",
+  "description": "Applies a reusable project rule to a specific Qalam Studio project.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "id",
+    "rule_id",
+    "enabled",
+    "parameters",
+    "version"
+  ],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^ASSIGNMENT-[A-Z0-9_-]+$",
+      "description": "Stable unique identifier of the rule assignment.",
+      "examples": [
+        "ASSIGNMENT-EPISODE-MAX-DURATION",
+        "ASSIGNMENT-VISUAL-STYLE"
+      ]
+    },
+
+    "rule_id": {
+      "type": "string",
+      "pattern": "^RULE-[A-Z0-9_-]+$",
+      "description": "Identifier of the reusable ProjectRule being applied."
+    },
+
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this rule is enabled for the project."
+    },
+
+    "priority": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 100,
+      "description": "Relative priority used when multiple project rules compete or conflict. Higher values take precedence."
+    },
+
+    "parameters": {
+      "type": "object",
+      "description": "Project-specific values required by the referenced rule.",
+      "additionalProperties": true
+    },
+
+    "condition": {
+      "type": ["object", "null"],
+      "description": "Optional project-specific condition controlling when the assignment applies.",
+      "default": null,
+      "additionalProperties": true
+    },
+
+    "notes": {
+      "type": ["string", "null"],
+      "description": "Optional human-readable explanation or decision context.",
+      "default": null
+    },
+
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    }
+  }
+}
