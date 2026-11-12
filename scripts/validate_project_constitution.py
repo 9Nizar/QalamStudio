@@ -14,7 +14,7 @@ def read_json(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def main():
+def validate_constitution(constitution):
     schemas = {
         name: read_json(ROOT / "schemas" / f"{name}.schema.json")
         for name in ("project_rule", "project_rule_assignment", "project_constitution")
@@ -29,24 +29,23 @@ def main():
     if not isinstance(rules, list):
         raise ValueError("The rule catalog must be a JSON array.")
 
-    rule_ids = set()
+    rules_by_id = {}
     for rule in rules:
         rule_validator.validate(rule)
         rule_id = rule["id"]
-        if rule_id in rule_ids:
+        if rule_id in rules_by_id:
             raise ValueError(f"Duplicate rule ID: {rule_id}")
-        rule_ids.add(rule_id)
+        rules_by_id[rule_id] = rule
 
-    example = read_json(ROOT / "examples" / "project_constitution.example.json")
     constitution_validator = Draft202012Validator(
         schemas["project_constitution"],
         registry=registry,
         format_checker=Draft202012Validator.FORMAT_CHECKER,
     )
-    constitution_validator.validate(example)
-    for assignment in example["rule_assignments"]:
+    constitution_validator.validate(constitution)
+    for assignment in constitution["rule_assignments"]:
         rule_id = assignment["rule_id"]
-        if rule_id not in rule_ids:
+        if rule_id not in rules_by_id:
             raise ValueError(f"Unknown rule ID: {rule_id}")
 
         if rule_id == "RULE-MAX-DURATION":
@@ -57,6 +56,12 @@ def main():
             if parameters.get("unit") != "seconds":
                 raise ValueError(f'{assignment["id"]}: unit must be "seconds".')
 
+    return rules_by_id
+
+
+def main():
+    example = read_json(ROOT / "examples" / "project_constitution.example.json")
+    validate_constitution(example)
     print("Project constitution and rule catalog validated.")
 
 
