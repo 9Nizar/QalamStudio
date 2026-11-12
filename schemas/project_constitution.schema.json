@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qalamstudio.dev/schemas/project_constitution.schema.json",
+  "title": "Qalam Studio Project Constitution",
+  "description": "Records the project's identity, creative intent, assigned rules, and approval state.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "identity", "creative_brief", "rule_assignments", "governance"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^CONSTITUTION-[A-Z0-9_-]+$"
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "production_type", "format", "target_audience"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "production_type": {"type": "string", "minLength": 1},
+        "format": {"type": "string", "minLength": 1},
+        "target_audience": {"type": "string", "minLength": 1}
+      }
+    },
+    "creative_brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["premise", "narrative_intent", "visual_direction", "audio_direction"],
+      "properties": {
+        "premise": {"type": "string", "minLength": 1},
+        "narrative_intent": {"type": "string", "minLength": 1},
+        "visual_direction": {"type": "string", "minLength": 1},
+        "audio_direction": {"type": "string", "minLength": 1}
+      }
+    },
+    "rule_assignments": {
+      "type": "array",
+      "items": {"$ref": "project_rule_assignment.schema.json"}
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "version"],
+      "properties": {
+        "status": {"enum": ["draft", "approved"]},
+        "version": {"type": "integer", "minimum": 1},
+        "approved_at": {"type": "string", "format": "date-time"}
+      },
+      "if": {"properties": {"status": {"const": "approved"}}},
+      "then": {"required": ["approved_at"]},
+      "else": {"not": {"required": ["approved_at"]}}
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "CONSTITUTION-001",
+  "identity": {
+    "title": "Le Jardin des Étoiles",
+    "production_type": "hybrid_film",
+    "format": "short_film",
+    "target_audience": "children_6_9"
+  },
+  "creative_brief": {
+    "premise": "Deux enfants découvrent un jardin mystérieux.",
+    "narrative_intent": "Une aventure poétique sur l'entraide.",
+    "visual_direction": "Décors réels et personnages 2D illustrés.",
+    "audio_direction": "Narration douce et ambiance naturelle."
+  },
+  "rule_assignments": [
+    {
+      "id": "ASSIGNMENT-MAX-DURATION",
+      "rule_id": "RULE-MAX-DURATION",
+      "enabled": true,
+      "parameters": {
+        "max_duration": 240,
+        "unit": "seconds"
+      },
+      "version": 1
+    }
+  ],
+  "governance": {
+    "status": "draft",
+    "version": 1
+  }
+}
