@@ -49,6 +49,14 @@ def main():
         if rule_id not in rule_ids:
             raise ValueError(f"Unknown rule ID: {rule_id}")
 
+        if rule_id == "RULE-MAX-DURATION":
+            parameters = assignment["parameters"]
+            duration = parameters.get("max_duration")
+            if type(duration) is not int or duration <= 0:
+                raise ValueError(f'{assignment["id"]}: max_duration must be a positive integer.')
+            if parameters.get("unit") != "seconds":
+                raise ValueError(f'{assignment["id"]}: unit must be "seconds".')
+
     print("Project constitution and rule catalog validated.")
 
 
