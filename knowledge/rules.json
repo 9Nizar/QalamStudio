@@ -1,1 +1,19 @@
-
+[
+  {
+    "id": "RULE-MAX-DURATION",
+    "name": "Maximum project runtime",
+    "description": "The final deliverable must not exceed the runtime limit set by the project assignment.",
+    "level": "hard_constraint",
+    "category": "production",
+    "scope": [
+      "deliverable"
+    ],
+    "validation": {
+      "mode": "automatic",
+      "expression": "The final deliverable duration, expressed in the configured unit, must be less than or equal to max_duration."
+    },
+    "violation_action": "reject",
+    "enabled": true,
+    "version": 1
+  }
+]
