@@ -28,3 +28,13 @@ Source paths are relative to the manifest. Frame ranges refer to the source afte
 ```powershell
 python -B workflows/video_factory/assemble.py constitution-approved.json shots.json montage.mp4
 ```
+
+## Render a narrated montage
+
+```powershell
+python -B workflows/video_factory/render.py constitution-approved.json shots.json narration.wav narrated.mp4 --subtitles captions.srt --narration-offset-ms 500
+```
+
+Use the same shot manifest as the silent assembler. The video sets the output duration. The narration starts at the requested offset in milliseconds (zero by default), and silence fills the rest. Narration that extends past the video is rejected. Optional SRT cues use the video timeline and are burned into the image with FFmpeg's libass filter.
+
+Choose an unused output path in an existing directory. The MP4 is saved only after the production check and a full audio and video decode succeed.
