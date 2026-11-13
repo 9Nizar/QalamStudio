@@ -76,6 +76,34 @@ class NarratedExportTest(unittest.TestCase):
                 self.assertTrue(any(mixed_audio[4800:6400]))
                 self.assertEqual(set(mixed_audio[14400:16000]), {0})
 
+        cue = directory / "cue.wav"
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-f", "lavfi", "-i",
+             "sine=frequency=880:duration=0.15", str(cue)],
+            check=True,
+        )
+        with_cue = directory / "with-cue.mp4"
+        subprocess.run(
+            [*command, str(with_cue), "--ambience", str(ambience),
+             "--cue", str(cue), "--cue-offset-ms", "750"],
+            check=True,
+        )
+        audio = subprocess.check_output([
+            "ffmpeg", "-v", "error", "-i", str(with_cue), "-map", "0:a:0",
+            "-ar", "8000", "-f", "s16le", "-",
+        ])
+        self.assertTrue(any(audio[12800:13600]))
+        self.assertEqual(set(audio[15680:16000]), {0})
+
+        outside = directory / "outside.mp4"
+        result = subprocess.run(
+            [*command, str(outside), "--cue", str(cue), "--cue-offset-ms", "1000"],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Sound cue must start before the end", result.stderr)
+        self.assertFalse(outside.exists())
+
         rejected = directory / "rejected.mp4"
         result = subprocess.run(
             [*command, str(rejected), "--narration-offset-ms", "800"],
