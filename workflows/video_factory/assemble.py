@@ -32,6 +32,8 @@ def main():
         with TemporaryDirectory(dir=args.output.resolve().parent) as directory:
             scratch = Path(directory)
             entries = []
+            total_frames = 0
+            elapsed_us = 0
             for index, shot in enumerate(shots):
                 if not isinstance(shot, dict) or not isinstance(shot.get("source"), str):
                     raise ValueError(f"shot {index + 1} requires a source path")
@@ -60,6 +62,12 @@ def main():
                 if frames != str(count):
                     raise ValueError(f"shot {index + 1} is shorter than the requested range")
                 entries.append(f"file '{clip.name}'\n")
+                # Derive each segment duration from cumulative frame boundaries.
+                total_frames += count
+                end_us = (total_frames * 1_000_000 + 12) // 24
+                seconds, microseconds = divmod(end_us - elapsed_us, 1_000_000)
+                entries.append(f"duration {seconds}.{microseconds:06d}\n")
+                elapsed_us = end_us
 
             playlist = scratch / "shots.txt"
             playlist.write_text("".join(entries), encoding="ascii")
