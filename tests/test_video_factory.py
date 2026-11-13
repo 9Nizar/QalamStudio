@@ -61,3 +61,32 @@ class VideoFactoryTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("requires an approved constitution", result.stderr)
         self.assertFalse(self.output.exists())
+
+    def test_three_shots_keep_continuous_frame_timestamps(self):
+        source = self.directory / "source.mp4"
+        subprocess.run([
+            "ffmpeg", "-v", "error", "-f", "lavfi", "-i",
+            "color=blue:s=320x180:r=24:d=8", "-c:v", "libx264", str(source),
+        ], check=True)
+        manifest = self.directory / "shots.json"
+        manifest.write_text(json.dumps([
+            {"source": source.name, "frames": count} for count in (144, 144, 192)
+        ]), encoding="utf-8")
+        result = subprocess.run([
+            sys.executable, "-B", str(ROOT / "workflows/video_factory/assemble.py"),
+            str(self.approved_constitution(20)), str(manifest), str(self.output),
+        ], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        probe = json.loads(subprocess.check_output([
+            "ffprobe", "-v", "error", "-select_streams", "v:0", "-show_packets",
+            "-show_entries", "packet=pts:stream=time_base,duration", "-of", "json",
+            str(self.output),
+        ], text=True))
+        stream = probe["streams"][0]
+        self.assertEqual(stream["duration"], "20.000000")
+        numerator, denominator = map(int, stream["time_base"].split("/"))
+        timestamps = sorted(packet["pts"] for packet in probe["packets"])
+        self.assertEqual(
+            [pts * numerator * 24 for pts in timestamps],
+            [frame * denominator for frame in range(480)],
+        )
