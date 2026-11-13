@@ -53,6 +53,29 @@ class NarratedExportTest(unittest.TestCase):
         self.assertTrue(any(audio[4800:6400]))
         self.assertEqual(set(audio[12800:16000]), {0})
 
+        ambience = directory / "ambience.wav"
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-f", "lavfi", "-i",
+             "sine=frequency=220:duration=0.7", str(ambience)],
+            check=True,
+        )
+        for gain in ("0.15", "0"):
+            with self.subTest(ambience_gain=gain):
+                mixed = directory / f"mixed-{gain}.mp4"
+                result = subprocess.run(
+                    [*command, str(mixed), "--narration-offset-ms", "250",
+                     "--ambience", str(ambience), "--ambience-gain", gain],
+                    capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                mixed_audio = subprocess.check_output([
+                    "ffmpeg", "-v", "error", "-i", str(mixed), "-map", "0:a:0",
+                    "-ar", "8000", "-f", "s16le", "-",
+                ])
+                self.assertEqual(any(mixed_audio[1600:3200]), gain != "0")
+                self.assertTrue(any(mixed_audio[4800:6400]))
+                self.assertEqual(set(mixed_audio[14400:16000]), {0})
+
         rejected = directory / "rejected.mp4"
         result = subprocess.run(
             [*command, str(rejected), "--narration-offset-ms", "800"],
