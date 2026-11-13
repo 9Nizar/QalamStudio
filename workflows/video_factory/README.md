@@ -40,3 +40,4 @@ Use the same shot manifest as the silent assembler. The video sets the output du
 Choose an unused output path in an existing directory. The MP4 is saved only after the production check and a full audio and video decode succeed.
 
 Add `--ambience background.wav` to mix a background track from the start of the video. `--ambience-gain` sets its linear volume from 0 to 1 (default 0.15). The track plays once and is cut at the end of the montage.
+Use --cue chime.wav --cue-offset-ms 8050 to play a sound effect once at 8.05 seconds. The cue can accompany the ambience and is cut at the end of the video.

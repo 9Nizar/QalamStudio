@@ -35,7 +35,11 @@ def main():
     parser.add_argument("--narration-offset-ms", type=int, default=0)
     parser.add_argument("--ambience", type=Path, help="Optional background audio.")
     parser.add_argument("--ambience-gain", type=float, default=0.15)
+    parser.add_argument("--cue", type=Path, help="Optional one-shot sound effect.")
+    parser.add_argument("--cue-offset-ms", type=int, default=0)
     args = parser.parse_args()
+    if args.cue_offset_ms < 0 or (args.cue is None and args.cue_offset_ms):
+        parser.error("--cue-offset-ms must be nonnegative and requires --cue.")
     if not 0 <= args.ambience_gain <= 1:
         parser.error("--ambience-gain must be between 0 and 1.")
     output = args.output.absolute()
@@ -73,16 +77,27 @@ def main():
             audio_inputs = []
             voice_filter = f"adelay={args.narration_offset_ms}:all=1,apad"
             audio_options = ["-map", "1:a:0", "-af", voice_filter]
-            if args.ambience is not None:
-                audio_inputs = ["-i", str(args.ambience.resolve(strict=True))]
-                audio_options = [
-                    "-filter_complex",
-                    f"[1:a:0]{voice_filter}[voice];"
-                    f"[2:a:0]volume={args.ambience_gain}[bed];"
-                    "[voice][bed]amix=inputs=2:duration=first:normalize=0,"
-                    "alimiter=limit=0.95:level=0:latency=1[mix]",
-                    "-map", "[mix]",
-                ]
+            tracks = [(args.ambience, f"volume={args.ambience_gain}"),
+                      (args.cue, f"adelay={args.cue_offset_ms}:all=1")]
+            if args.cue is not None and Decimal(args.cue_offset_ms) / 1000 >= length:
+                raise ValueError("Sound cue must start before the end of the montage.")
+            mix_filters = [f"[1:a:0]{voice_filter}[voice]"]
+            mix_inputs = ["[voice]"]
+            for track, effect in tracks:
+                if track is None:
+                    continue
+                index = len(mix_inputs) + 1
+                label = f"[track{index}]"
+                audio_inputs.extend(["-i", str(track.resolve(strict=True))])
+                mix_filters.append(f"[{index}:a:0]{effect}{label}")
+                mix_inputs.append(label)
+            if audio_inputs:
+                mix_filters.append(
+                    "".join(mix_inputs)
+                    + f"amix=inputs={len(mix_inputs)}:duration=first:normalize=0,"
+                    "alimiter=limit=0.95:level=0:latency=1[mix]"
+                )
+                audio_options = ["-filter_complex", ";".join(mix_filters), "-map", "[mix]"]
             subprocess.run(
                 ["ffmpeg", "-v", "error", "-xerror", "-i", str(picture), "-i", str(narration),
                  *audio_inputs, "-map", "0:v:0", *video_options, *audio_options,
